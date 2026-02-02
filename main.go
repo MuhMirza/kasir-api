@@ -2,14 +2,56 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
+	"strings"
+
+	"github.com/spf13/viper"
+
+	"kasir-api/database"
+	"kasir-api/handlers"
+	"kasir-api/repositories"
+	"kasir-api/services"
 )
 
+// ubah Config
+type Config struct {
+	Port   string `mapstructure:"PORT"`
+	DBConn string `mapstructure:"DB_CONN"`
+}
+
 func main() {
-	// Routing Produk (Logic-nya ada di file produk.go)
-	// Asumsi kamu sudah memindahkan logic produk ke file produk.go
-	http.HandleFunc("/api/produk", produkHandler)
-	http.HandleFunc("/api/produk/", produkByIDHandler)
+	viper.AutomaticEnv()
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+
+	// Cek .env
+	if _, err := os.Stat(".env"); err == nil {
+		viper.SetConfigFile(".env")
+		if err := viper.ReadInConfig(); err != nil {
+			log.Println("Warning: Gagal baca .env file")
+		}
+	}
+
+	config := Config{
+		Port:   viper.GetString("PORT"),
+		DBConn: viper.GetString("DB_CONN"),
+	}
+
+	// Setup database
+	db, err := database.InitDB(config.DBConn)
+	if err != nil {
+		log.Fatal("Failed to initialize database:", err)
+	}
+	defer db.Close()
+
+	productRepo := repositories.NewProductRepository(db)
+	productService := services.NewProductService(productRepo)
+	productHandler := handlers.NewProductHandler(productService)
+
+	// Setup routes
+	http.HandleFunc("/api/produk", productHandler.HandleProducts)
+	http.HandleFunc("/api/produk/", productHandler.HandleProductByID)
 
 	// Routing Kategori (Logic-nya ada di file kategori.go)
 	http.HandleFunc("/categories", categoriesHandler)
@@ -19,8 +61,19 @@ func main() {
 		w.Write([]byte("OK"))
 	})
 
-	err := http.ListenAndServe(":8080", nil)
+	addr := "0.0.0.0:" + config.Port
+	fmt.Println("Server running di", addr)
+
+	err = http.ListenAndServe(addr, nil)
 	if err != nil {
-		fmt.Println("gagal running server")
+		fmt.Println("gagal running server", err)
 	}
+
 }
+
+//**
+//
+// projectname = "kasir-go"
+//password db = "pFFwiKicdWfatdO0"
+//connection = "postgresql://postgres.fqbrtoffiwaswkeqluqh:pFFwiKicdWfatdO0@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres"
+// *///
