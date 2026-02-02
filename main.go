@@ -45,18 +45,25 @@ func main() {
 	}
 	defer db.Close()
 
+	// Product dependencies
 	productRepo := repositories.NewProductRepository(db)
 	productService := services.NewProductService(productRepo)
 	productHandler := handlers.NewProductHandler(productService)
 
-	// Setup routes
+	// Category dependencies
+	categoryRepo := repositories.NewCategoryRepository(db)
+	categoryService := services.NewCategoryService(categoryRepo)
+	categoryHandler := handlers.NewCategoryHandler(categoryService)
+
+	// Setup routes - Product
 	http.HandleFunc("/api/produk", productHandler.HandleProducts)
 	http.HandleFunc("/api/produk/", productHandler.HandleProductByID)
 
-	// Routing Kategori (Logic-nya ada di file kategori.go)
-	http.HandleFunc("/categories", categoriesHandler)
-	http.HandleFunc("/categories/", categoryByIDHandler)
+	// Setup routes - Category
+	http.HandleFunc("/api/kategori", categoryHandler.HandleCategories)
+	http.HandleFunc("/api/kategori/", categoryHandler.HandleCategoryByID)
 
+	// Health check
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("OK"))
 	})
