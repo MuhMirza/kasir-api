@@ -70,10 +70,3 @@ func main() {
 	}
 
 }
-
-//**
-//
-// projectname = "kasir-go"
-//password db = "pFFwiKicdWfatdO0"
-//connection = "postgresql://postgres.fqbrtoffiwaswkeqluqh:pFFwiKicdWfatdO0@aws-1-ap-northeast-1.pooler.supabase.com:6543/postgres"
-// *///
