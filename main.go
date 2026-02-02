@@ -60,8 +60,8 @@ func main() {
 	http.HandleFunc("/api/produk/", productHandler.HandleProductByID)
 
 	// Setup routes - Category
-	http.HandleFunc("/api/kategori", categoryHandler.HandleCategories)
-	http.HandleFunc("/api/kategori/", categoryHandler.HandleCategoryByID)
+	http.HandleFunc("/categories", categoryHandler.HandleCategories)
+	http.HandleFunc("/categories/", categoryHandler.HandleCategoryByID)
 
 	// Health check
 	http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
